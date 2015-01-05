@@ -17,6 +17,7 @@ from qiniu import io
 from qiniu import rs
 import os
 import urllib2
+import itertools
 
 try:
     from cStringIO import StringIO
@@ -99,7 +100,25 @@ class QiniuStorage(Storage):
         return name
 
     def save(self, name, content):
+        name = self.get_available_name(name)
         return self._save(name, content)
+
+
+    def get_available_name(self, name):
+        """
+        Returns a filename that's free on the target storage system, and
+        available for new content to be written to.
+        """
+        file_root, file_ext = os.path.splitext(name)
+        # If the filename already exists, add an underscore and a number (before
+        # the file extension, if one exists) to the filename until the generated
+        # filename doesn't exist.
+        count = itertools.count(1)
+        while self.exists(name):
+            # file_ext includes the dot.
+            name = "%s_%s%s" % (file_root, next(count), file_ext)
+        return name
+
 
     def _put_file(self, name, content):
 
