@@ -4,6 +4,14 @@ from django.core.files.storage import Storage
 from django.conf import settings
 from django.core.files.base import File
 from django.utils import importlib
+try:
+    from django.utils.deconstruct import deconstructible
+except:
+    def deconstructible(func):
+        def wrap(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrap
+
 from qiniu import conf
 from qiniu import io
 from qiniu import rs
@@ -23,6 +31,7 @@ ENCRYPT_FUNC = getattr(settings, 'QINIU_ENCRYPT_FUNC', None)
 IS_PRIVATE_BUCKET = getattr(settings, 'QINIU_BUCKET_IS_PRIVATED', False)
 
 
+@deconstructible
 class QiniuStorage(Storage):
 
     def __init__(self, access_key=ACCESS_KEY, secret_key=SECRET_KEY,
